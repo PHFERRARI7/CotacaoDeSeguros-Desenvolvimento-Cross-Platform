@@ -31,7 +31,10 @@ class CotacaoScreen extends StatefulWidget {
 class _CotacaoScreenState extends State<CotacaoScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
+  final _idadeController = TextEditingController();
   final _modeloController = TextEditingController();
+  final _placaController = TextEditingController();
+  final _anoController = TextEditingController();
 
   String _tipoVeiculo = 'Carro';
 
@@ -43,10 +46,15 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
 
   bool _assistencia24h = false;
 
+  int idade = 18;
+
   void novaCotacao() {
     setState(() {
       _nomeController.clear();
+      _idadeController.clear();
       _modeloController.clear();
+      _placaController.clear();
+      _anoController.clear();
 
       _tipoVeiculo = 'Carro';
       _valorVeiculo = 50000;
@@ -69,7 +77,10 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
           title: const Text('Enviar cotação?'),
           content: Text(
             'Cliente: ${_nomeController.text}\n'
+            'Idade: ${_idadeController.text}\n'
             'Veículo: ${_modeloController.text}\n'
+            'Placa: ${_placaController.text}\n'
+            'Ano: ${_anoController.text}\n'
             'Tipo: $_tipoVeiculo\n'
             'Valor do seguro: R\$ ${valorSeguro.toStringAsFixed(2)}',
           ),
@@ -152,6 +163,29 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
                       const SizedBox(height: 16),
 
                       TextFormField(
+                        controller: _idadeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Idade do condutor principal',
+                          hintText: 'Ex.: 25 anos',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe a idade do condutor principal do veículo';
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
                         controller: _modeloController,
                         decoration: const InputDecoration(
                           labelText: 'Modelo do veículo',
@@ -162,6 +196,44 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Informe o modelo do veículo';
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _placaController,
+                        decoration: const InputDecoration(
+                          labelText: 'Placa do veículo',
+                          hintText: 'Ex.: ABC1D234',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.crop_16_9),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe a placa do veículo';
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _anoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ano do veículo',
+                          hintText: 'Ex.: 2026',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Informe o ano do veículo';
                           }
 
                           return null;
@@ -292,7 +364,7 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
                 ),
               ),
             ),
-          
+
             const SizedBox(height: 24),
 
             Padding(
@@ -356,8 +428,22 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
     );
   }
 
+  double _calcularTaxaPorIdade(int idade) {
+    switch (idade) {
+      case >= 18 && <= 25:
+        return 0.05;
+
+      case >= 26 && <= 45:
+        return 0.025;
+
+      default:
+        return 0.015;
+    }
+  }
+
   double calcularSeguro() {
     double taxa;
+    final int idade = int.tryParse(_idadeController.text) ?? 18;
 
     switch (_tipoVeiculo) {
       case 'Moto':
@@ -373,6 +459,9 @@ class _CotacaoScreenState extends State<CotacaoScreen> {
     }
 
     double total = _valorVeiculo * taxa;
+    double taxaPorIdade = _calcularTaxaPorIdade(idade);
+
+    total += total * taxaPorIdade;
 
     if (_coberturaRoubo) {
       total += 300;
